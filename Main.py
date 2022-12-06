@@ -1,13 +1,8 @@
-import pandas as pd
-import yfinance as yf
-import numpy as np
-from sklearn.linear_model import LinearRegression
-import requests
+from multiprocessing import Process, Queue
+import DataSource
 
-def main():
-    resp = requests.get("https://api.cryptowat.ch/markets/binance/btcusdt/orderbook?limit=1")
-    orderbook = resp.json()['result']
-    print (orderbook)
+q= Queue()
+p = Process(target=DataSource.process, args=((q,)))
 
-if __name__ == '__main__':
-    main()
+p.start()
+p.join

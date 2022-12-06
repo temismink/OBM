@@ -1,0 +1,40 @@
+def backtest(cls, queue, controller = None):
+        controller = cls() if controller is None else controller
+        try:
+            while True:
+                if not queue.empty():
+                    o = queue.get()
+                    controller._logger.debug(o)
+
+                    
+                    if o == 'POISON':
+                        # Poison Pill!
+                        break
+
+                    timestamp = o[0]
+                    ticker = o[1]
+                    price = o[2]
+
+                    # Update pricing
+                    controller.process_pricing(ticker = ticker, price = price)
+
+                    # Generate Orders
+                    orders = controller._algorithm \
+                            .generate_orders(timestamp, controller._portfolio)
+
+                    # Process orders
+                    if len(orders) > 0:
+                        # Randomize the order execution
+                        final_orders = [orders[k] for k in np.random.choice(len(orders), 
+                                                                            replace=False, 
+                                                                            size=len(orders))]
+
+                        for order in final_orders:
+                            controller.process_order(order)
+
+                        controller._logger.info(controller._portfolio.value_summary(timestamp))
+
+        except Exception as e:
+            print(e)
+        finally:
+            controller._logger.info(controller._portfolio.value_summary(None))
