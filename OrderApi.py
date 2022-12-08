@@ -1,4 +1,7 @@
+import numpy as np
+
 class OrderApi:
+
     def __init__(self):
         self._slippage_std = .01
         self._prob_of_failure = .0001

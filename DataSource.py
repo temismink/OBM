@@ -4,9 +4,13 @@ from sklearn.linear_model import LinearRegression
 import requests
 from multiprocessing import Process, Queue
 import logging
+from pandas_datareader import DataReader
+import datetime as dt
+import domain
 
 def __init__(self):
     self._logger = logging.getLogger(__name__)
+    self.set_source(source = source, tickers=tickers, start=start, end=end)
     
 def get_data():
     #orderbook for btcusd
@@ -33,4 +37,34 @@ def process(cls, queue, source = None):
             if data == 'POISON':
                 break
 
-    #backtester
+def set_source(self, source, tickers, start, end):
+        prices = pd.DataFrame()
+        counter = 0.
+        for ticker in tickers:
+            try:
+                self._logger.info('Loading ticker %s' % (counter / len(tickers)))
+                prices[ticker] = DataReader(ticker, source, start, end).loc[:, 'Close']
+            except Exception as e:
+                self._logger.error(e)
+                pass
+            counter+=1
+
+        events = []
+        for row in prices.iterrows():
+            timestamp=row[0]
+            series = row[1]
+            vals = series.values
+            indx = series.index
+            for k in np.random.choice(len(vals),replace=False, size=len(vals)): # Shuffle!
+                if np.isfinite(vals[k]):
+                    events.append((timestamp, indx[k], vals[k]))
+
+        self._source = events
+
+        self._logger.info('Loaded data!')
+
+def get_data(self):
+    try:
+        return self._source.pop(0)
+    except IndexError as e:
+        return 'POISON'
